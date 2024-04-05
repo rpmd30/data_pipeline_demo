@@ -1,0 +1,44 @@
+version: '3'
+services:
+  fetcher:
+    build:
+      context: app
+      dockerfile: Dockerfile
+    container_name: fetcher
+    restart: unless-stopped
+    environment:
+      APP_ENV: "prod"
+      APP_DEBUG: "False"
+      APP_PORT: 5000
+      MONGODB_DATABASE: demo
+      MONGODB_USERNAME: mongodbuser
+      MONGODB_PASSWORD: rootpw
+      MONGODB_HOSTNAME: mongodb
+    depends_on:
+      - mongodb
+    networks:
+      - fetcher
+
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    restart: unless-stopped
+    command: mongod --auth
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongodbuser
+      MONGO_INITDB_ROOT_PASSWORD: rootpw
+      MONGO_INITDB_DATABASE: hostinfo
+      MONGODB_DATA_DIR: /data/db
+      MONDODB_LOG_DIR: /dev/null
+    volumes:
+      - mongodbdata:/data/db
+    networks:
+      - fetcher
+
+networks:
+  fetcher:
+    driver: bridge
+
+volumes:
+  mongodbdata:
+    driver: local
